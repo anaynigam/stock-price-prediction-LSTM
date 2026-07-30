@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual environments
+.venv/
+.venv1/
+venv/
+
+# PyCharm
+.idea/
+
+# Gradio
+.gradio/
+
+# Trained models
+*.h5
+*.keras
+
+# Environment variables
+.env
