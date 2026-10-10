@@ -19,6 +19,15 @@ def run_prediction(stock, start, end):
 
     predicted_price = float(result)
 
+    stock=stock.upper().strip()
+
+    if stock.endswith(".NS") or stock.endswith(".BO"):
+        currency="₹"
+        currency_name="INR"
+    else:
+        currency="$"
+        currency_name="USD"
+
 
 
     if isinstance(df.columns, pd.MultiIndex):
@@ -28,7 +37,7 @@ def run_prediction(stock, start, end):
 
     last_date = df.index[-1]
 
-    next_date = last_date + pd.Timedelta(days=1)
+    next_date = last_date + pd.offsets.BDay(1)
 
 
 
@@ -36,17 +45,17 @@ def run_prediction(stock, start, end):
 
 
 
-    fig, ax = plt.subplots(figsize=(12, 6))
+    fig, ax1 = plt.subplots(figsize=(12, 6))
 
     # Historical prices
-    ax.plot(
+    ax1.plot(
         df.index,
         df["Close"],
         label="Historical Close Price"
     )
 
     # Prediction point
-    ax.scatter(
+    ax1.scatter(
         next_date,
         predicted_price,
         label="Predicted Next Close",
@@ -54,7 +63,7 @@ def run_prediction(stock, start, end):
     )
 
     # Dashed connection line
-    ax.plot(
+    ax1.plot(
         [last_date, next_date],
         [last_close, predicted_price],
         linestyle="--",
@@ -63,15 +72,45 @@ def run_prediction(stock, start, end):
 
 
 
-    ax.set_title(f"{stock} Stock Price Prediction")
+    ax1.set_title(f"{stock} Stock Price Prediction")
 
-    ax.set_xlabel("Date")
+    ax1.set_xlabel("Date")
 
-    ax.set_ylabel("Price")
+    ax1.set_ylabel(f"Price({currency}")
 
-    ax.legend()
+    ax1.legend()
 
-    ax.grid(True)
+    ax1.grid(True)
+
+
+    fig_indicators,ax2=plt.subplots(figsize=(12, 6))
+    ax2.plot(
+        df.index,
+        df["Close"],
+        label="Closing Price",
+    )
+    ax2.plot(
+        df.index,
+        df['EMA20'],
+        label="EMA20",
+    )
+    ax2.plot(
+        df.index,
+        df['SMA20'],
+        label="SMA20",
+    )
+    ax2.plot(
+        df.index,
+        df["BB_LOWER"],
+        label="BB_LOWER",
+    )
+
+    ax2.set_title(f"{stock} - Technical Indicators")
+    ax2.set_xlabel("Date")
+    ax2.set_ylabel(f"Price ({currency})")
+    ax2.legend()
+    ax2.grid(True)
+
 
 
 
@@ -81,17 +120,19 @@ def run_prediction(stock, start, end):
         difference / last_close
     ) * 100
 
+    change_sign="+" if difference>=0 else ""
+
     output_text = f"""
-Predicted Next Close Price: ${predicted_price:.2f}
+Predicted Next Close Price: {currency}{predicted_price:.2f}{currency_name}
 
-Last Close Price: ${last_close:.2f}
+Last Close Price: {currency}{last_close:.2f}{currency_name}
 
-Predicted Change: {difference:.2f}
+Predicted Change: {currency}{difference:.2f}
 
 Percentage Change: {percentage_change:.2f}%
 """
 
-    return output_text, fig
+    return output_text, fig, fig_indicators
 
 
 
@@ -120,17 +161,17 @@ This is NOT financial advice.
 
     stock = gr.Textbox(
         label="Stock Symbol",
-        value="GOOG"
+        value="MSFT"
     )
 
     start = gr.Textbox(
         label="Start Date (YYYY-MM-DD)",
-        value="2018-01-01"
+        value="2000-01-01"
     )
 
     end = gr.Textbox(
         label="End Date (YYYY-MM-DD)",
-        value="2025-01-01"
+        value="2026-10-01"
     )
 
 
@@ -147,11 +188,21 @@ This is NOT financial advice.
         label="Prediction Graph"
     )
 
+    output_plot_indicators = gr.Plot(
+        label="Technical Indicators"
+    )
+
 
     predict_btn.click(
         fn=run_prediction,
         inputs=[stock, start, end],
-        outputs=[output_text, output_plot]
+        outputs=[output_text, output_plot, output_plot_indicators]
     )
 
-demo.launch(share=True)
+import os
+
+if __name__=="__main__":
+    demo.launch(
+        server_name="0.0.0.0",
+        server_port=int(os.environ.get("PORT",7860))
+    )
