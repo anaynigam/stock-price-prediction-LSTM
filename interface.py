@@ -14,11 +14,23 @@ def run_prediction(stock, start, end):
         end
     )
 
+    if result is None or df is None or df.empty:
+        return(
+            "Prediction unavailable. Yahoo Finance may be rate-limiting "
+            "requests or the stock data could not be downloaded. "
+            "Please wait and try again later.",
+            None,
+            None
+        )
+    try:
+        predicted_price=float(result)
+    except(TypeError,ValueError):
+        return(
+            "Prediction Failed: Model did not return a valid price.",
+            None,
+            None
+        )
 
-    if df is None:
-        return result, None
-
-    predicted_price = float(result)
 
     stock=stock.upper().strip()
 

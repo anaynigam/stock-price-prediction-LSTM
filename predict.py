@@ -28,6 +28,9 @@ def predict_stock(stock, start, end):
         auto_adjust=True
     )
 
+    if df is None or df.empty:
+        return None,None
+
     if df.empty or len(df) < TIME_STEP:
         return None, "Not enough data"
 
