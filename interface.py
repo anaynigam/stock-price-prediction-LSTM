@@ -1,6 +1,7 @@
 import gradio as gr
 import matplotlib.pyplot as plt
 import pandas as pd
+import os
 
 from predict import predict_stock
 
@@ -199,7 +200,7 @@ This is NOT financial advice.
         outputs=[output_text, output_plot, output_plot_indicators]
     )
 
-import os
+
 
 if __name__=="__main__":
     demo.launch(
